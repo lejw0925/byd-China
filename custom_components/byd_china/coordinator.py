@@ -424,16 +424,25 @@ class BydGpsUpdateCoordinator(DataUpdateCoordinator[GpsInfo | None]):
                     self._api.async_write_debug_dump("gps", {"vin": self._vin, "gps": gps.model_dump() if gps else None})
                 )
 
-            _LOGGER.debug("GPS refresh succeeded: vin=%s", self._vin[-6:])
+            if gps is not None:
+                _LOGGER.info(
+                    "GPS refresh succeeded: vin=%s lat=%s lon=%s",
+                    self._vin[-6:], gps.latitude, gps.longitude,
+                )
+            else:
+                _LOGGER.warning("GPS refresh returned None: vin=%s", self._vin[-6:])
             return gps
         except BydApiError as exc:
             if getattr(exc, "code", "") in _NON_OWNER_CODES:
                 _LOGGER.debug("GPS not available for authorized account: %s", exc)
                 return self.data
-            _LOGGER.warning("GPS fetch failed: vin=%s, error=%s", self._vin, exc)
+            _LOGGER.warning("GPS fetch error: vin=%s code=%s msg=%s", self._vin[-6:], getattr(exc, "code", ""), exc)
             return self.data
         except _AUTH_ERRORS:
             raise
         except _RECOVERABLE_ERRORS as exc:
-            _LOGGER.warning("GPS fetch failed: vin=%s, error=%s", self._vin, exc)
+            _LOGGER.warning("GPS fetch error: vin=%s type=%s msg=%s", self._vin[-6:], type(exc).__name__, exc)
+            return self.data
+        except Exception:  # noqa: BLE001
+            _LOGGER.exception("GPS fetch unexpected error: vin=%s", self._vin[-6:])
             return self.data

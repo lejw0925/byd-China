@@ -303,17 +303,12 @@ class BydSensor(BydVehicleEntity, SensorEntity):
     # ------------------------------------------------------------------
 
     def _get_gps_direct(self) -> GpsInfo | None:
-        """Get GPS data directly - works for both coordinator types.
-
-        For GPS coordinator: data IS GpsInfo.
-        For telemetry coordinator: data is VehicleSnapshot, gps is snap.gps.
-        """
+        """Get GPS data directly - works for both coordinator types."""
         data = self.coordinator.data
         if data is None:
             return None
         if isinstance(data, GpsInfo):
             return data
-        # VehicleSnapshot path
         return getattr(data, "gps", None)
 
     def _resolve_value(self) -> Any:
@@ -442,7 +437,8 @@ class BydSensor(BydVehicleEntity, SensorEntity):
         """Return True when the coordinator has data for this source."""
         key = self.entity_description.key
         if key in ("gps_latitude", "gps_longitude", "gps_last_updated"):
-            return self._get_gps_direct() is not None
+            gps = self._get_gps_direct()
+            return gps is not None and gps.latitude is not None and gps.longitude is not None
         if key in ("last_updated",):
             return self._resolve_value() is not None
         if key in _VEHICLE_INFO_KEYS:
