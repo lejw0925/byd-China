@@ -78,7 +78,7 @@ class BydDeviceTracker(CoordinatorEntity, TrackerEntity):
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:car"
-    _attr_translation_key = "device_tracker"
+    _attr_translation_key = "location"
 
     def __init__(
         self,
