@@ -170,13 +170,22 @@ async def post_token_json(
     response = await transport.post_secure(endpoint, outer)
     code = str(response.get("code", ""))
     if code != "0":
-        _raise_for_code(
-            endpoint=endpoint,
-            code=code,
-            message=str(response.get("message", "")),
-            vin=vin,
-            not_supported_codes=not_supported_codes,
-            extra_code_map=extra_code_map,
-        )
+        # Code 22 is a security notification (e.g. "logged in on new device"),
+        # not an actual API error. The response still contains valid data.
+        _SECURITY_NOTIFY_CODES = frozenset({"22"})
+        if code not in _SECURITY_NOTIFY_CODES:
+            _raise_for_code(
+                endpoint=endpoint,
+                code=code,
+                message=str(response.get("message", "")),
+                vin=vin,
+                not_supported_codes=not_supported_codes,
+                extra_code_map=extra_code_map,
+            )
+        else:
+            _logger.info(
+                "BYD security notification (code=%s) for %s: %s",
+                code, endpoint, response.get("message", ""),
+            )
 
     return decode_respond_data(endpoint=endpoint, response=response, content_key=content_key)
