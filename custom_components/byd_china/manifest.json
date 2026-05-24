@@ -1,0 +1,10 @@
+{
+  "domain": "byd_china",
+  "name": "BYD China",
+  "codeowners": [],
+  "config_flow": true,
+  "iot_class": "cloud_polling",
+  "requirements": ["aiohttp>=3.9", "pydantic>=2.6", "paho-mqtt>=2.1", "cryptography>=42.0"],
+  "version": "0.0.2",
+  "icon": "mdi:car-electric"
+}
