@@ -290,7 +290,7 @@ class BydDataUpdateCoordinator(DataUpdateCoordinator[VehicleSnapshot | None]):
 
     async def _async_update_data(self) -> VehicleSnapshot | None:
         """Fetch realtime telemetry data and build a VehicleSnapshot."""
-        _LOGGER.debug("Telemetry refresh started: vin=%s", self._vin[-6:])
+        _LOGGER.info("Telemetry refresh started: vin=%s", self._vin[-6:])
         force = self._force_next_refresh
         self._force_next_refresh = False
 
@@ -408,11 +408,12 @@ class BydGpsUpdateCoordinator(DataUpdateCoordinator[GpsInfo | None]):
 
     async def _async_update_data(self) -> GpsInfo | None:
         """Fetch GPS data (CN single-request endpoint)."""
-        _LOGGER.debug("GPS refresh started: vin=%s", self._vin[-6:])
+        _LOGGER.info("GPS refresh started: vin=%s", self._vin[-6:])
         force = self._force_next_refresh
         self._force_next_refresh = False
 
         if not self._polling_enabled and not force:
+            _LOGGER.info("GPS refresh skipped (polling disabled): vin=%s", self._vin[-6:])
             return self.data
 
         try:
