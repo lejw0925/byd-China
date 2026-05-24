@@ -3,7 +3,15 @@
 from __future__ import annotations
 
 import logging
+import sys
+from pathlib import Path
 from typing import Any
+
+# Make vendored pybyd_china importable as a top-level package (its
+# internal modules use absolute ``from pybyd_china.xxx`` imports).
+_comp_dir = Path(__file__).resolve().parent
+if str(_comp_dir) not in sys.path:
+    sys.path.insert(0, str(_comp_dir))
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
