@@ -290,7 +290,7 @@ class BydDataUpdateCoordinator(DataUpdateCoordinator[VehicleSnapshot | None]):
 
     async def _async_update_data(self) -> VehicleSnapshot | None:
         """Fetch realtime telemetry data and build a VehicleSnapshot."""
-        _LOGGER.info("Telemetry refresh started: vin=%s", self._vin[-6:])
+        _LOGGER.warning("Telemetry refresh started: vin=%s", self._vin[-6:])
         force = self._force_next_refresh
         self._force_next_refresh = False
 
@@ -312,7 +312,7 @@ class BydDataUpdateCoordinator(DataUpdateCoordinator[VehicleSnapshot | None]):
                 hvac=getattr(realtime_data, "hvac", None) if realtime_data else None,
             )
 
-            _LOGGER.debug("Telemetry refresh succeeded: vin=%s", self._vin[-6:])
+            _LOGGER.warning("Telemetry refresh succeeded: vin=%s", self._vin[-6:])
             return snapshot
         except BydApiError as exc:
             if getattr(exc, "code", "") in _NON_OWNER_CODES:
@@ -408,12 +408,12 @@ class BydGpsUpdateCoordinator(DataUpdateCoordinator[GpsInfo | None]):
 
     async def _async_update_data(self) -> GpsInfo | None:
         """Fetch GPS data (CN single-request endpoint)."""
-        _LOGGER.info("GPS refresh started: vin=%s", self._vin[-6:])
+        _LOGGER.warning("GPS refresh started: vin=%s", self._vin[-6:])
         force = self._force_next_refresh
         self._force_next_refresh = False
 
         if not self._polling_enabled and not force:
-            _LOGGER.info("GPS refresh skipped (polling disabled): vin=%s", self._vin[-6:])
+            _LOGGER.warning("GPS refresh skipped (polling disabled): vin=%s", self._vin[-6:])
             return self.data
 
         try:
@@ -426,7 +426,7 @@ class BydGpsUpdateCoordinator(DataUpdateCoordinator[GpsInfo | None]):
                 )
 
             if gps is not None:
-                _LOGGER.info(
+                _LOGGER.warning(
                     "GPS refresh succeeded: vin=%s lat=%s lon=%s",
                     self._vin[-6:], gps.latitude, gps.longitude,
                 )
