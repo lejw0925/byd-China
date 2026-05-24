@@ -440,15 +440,15 @@ class BydSensor(BydVehicleEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return True when the coordinator has data for this source."""
-        if not super().available:
-            return False
         key = self.entity_description.key
-        if key in ("last_updated", "gps_last_updated"):
+        if key in ("gps_latitude", "gps_longitude", "gps_last_updated"):
+            return self._get_gps_direct() is not None
+        if key in ("last_updated",):
             return self._resolve_value() is not None
         if key in _VEHICLE_INFO_KEYS:
-            return True
-        if key in ("gps_latitude", "gps_longitude"):
-            return self._get_gps_direct() is not None
+            return self.coordinator.last_update_success
+        if not super().available:
+            return False
         return self._get_source_obj(self.entity_description.source) is not None
 
     @property
