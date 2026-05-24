@@ -90,7 +90,6 @@ class BydDeviceTracker(CoordinatorEntity, TrackerEntity):
         self._vin = vin
         self._vehicle = vehicle
         self._attr_unique_id = f"{vin}_device_tracker"
-        self._attr_name = vehicle.auto_plate if vehicle.auto_plate else "BYD Vehicle"
 
     def _get_gps_info(self) -> GpsInfo | None:
         data = self.coordinator.data
