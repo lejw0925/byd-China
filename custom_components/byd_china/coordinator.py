@@ -159,6 +159,7 @@ class BydApi:
                 self._config,
                 session=self._http_session,
             )
+            await self._client.async_start()
             await self._client.login()
         return self._client
 
@@ -168,6 +169,10 @@ class BydApi:
                 "Invalidating pybyd client: entry_id=%s",
                 self._entry.entry_id,
             )
+            try:
+                await self._client.async_close()
+            except Exception:  # noqa: BLE001
+                _LOGGER.debug("Error closing pybyd client", exc_info=True)
             self._client = None
 
     async def async_call(
