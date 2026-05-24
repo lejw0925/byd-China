@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
+
+_LOGGER = logging.getLogger(__name__)
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -16,13 +19,15 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfLength, UnitOfPressure
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .pybyd_china.models.gps import GpsInfo
 from .pybyd_china.models.vehicle import Vehicle
 
 from .const import DOMAIN
-from .coordinator import BydDataUpdateCoordinator, BydGpsUpdateCoordinator
+from .coordinator import BydDataUpdateCoordinator, BydGpsUpdateCoordinator, get_vehicle_display
 from .entity import BydVehicleEntity
 
 # ---------------------------------------------------------------------------
@@ -243,6 +248,65 @@ SENSOR_DESCRIPTIONS: tuple[BydSensorDescription, ...] = (
 
 
 # =============================================
+# GPS Sensor (uses BydGpsUpdateCoordinator directly)
+# =============================================
+
+class BydGpsSensor(CoordinatorEntity[BydGpsUpdateCoordinator], SensorEntity):
+    """GPS sensor backed by BydGpsUpdateCoordinator."""
+
+    _attr_has_entity_name = True
+    entity_description: BydSensorDescription
+
+    def __init__(
+        self,
+        coordinator: BydGpsUpdateCoordinator,
+        vin: str,
+        vehicle: Vehicle,
+        description: BydSensorDescription,
+    ) -> None:
+        super().__init__(coordinator)
+        self.entity_description = description
+        self._vin = vin
+        self._vehicle = vehicle
+        self._attr_unique_id = f"{vin}_{description.source}_{description.key}"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._vin)},
+            name=get_vehicle_display(self._vehicle),
+            manufacturer=self._vehicle.brand_name or "BYD",
+            model=self._vehicle.model_name,
+            serial_number=self._vin,
+            hw_version=self._vehicle.tbox_version or None,
+        )
+
+    @property
+    def available(self) -> bool:
+        if not self.coordinator.last_update_success:
+            return False
+        data = self.coordinator.data
+        return isinstance(data, GpsInfo) and data.latitude is not None and data.longitude is not None
+
+    @property
+    def native_value(self) -> Any:
+        data = self.coordinator.data
+        if not isinstance(data, GpsInfo):
+            return None
+        key = self.entity_description.key
+        if key == "gps_latitude":
+            return data.latitude
+        if key == "gps_longitude":
+            return data.longitude
+        if key == "gps_last_updated":
+            val = data.gps_timestamp
+            if isinstance(val, datetime):
+                return val.replace(tzinfo=UTC) if val.tzinfo is None else val
+            return val
+        return None
+
+
+# =============================================
 # SETUP ENTRY
 # =============================================
 
@@ -265,7 +329,7 @@ async def async_setup_entry(
         for description in SENSOR_DESCRIPTIONS:
             if description.use_gps_coordinator:
                 if gps_coordinator is not None:
-                    entities.append(BydSensor(gps_coordinator, vin, vehicle, description))
+                    entities.append(BydGpsSensor(gps_coordinator, vin, vehicle, description))
                 continue
             entities.append(BydSensor(coordinator, vin, vehicle, description))
 
@@ -438,7 +502,15 @@ class BydSensor(BydVehicleEntity, SensorEntity):
         key = self.entity_description.key
         if key in ("gps_latitude", "gps_longitude", "gps_last_updated"):
             gps = self._get_gps_direct()
-            return gps is not None and gps.latitude is not None and gps.longitude is not None
+            if gps is None:
+                _LOGGER.warning("GPS sensor unavailable: _get_gps_direct() returned None for key=%s", key)
+                return False
+            lat_ok = gps.latitude is not None
+            lon_ok = gps.longitude is not None
+            if not lat_ok or not lon_ok:
+                _LOGGER.warning("GPS sensor unavailable: lat=%s lon=%s key=%s", gps.latitude, gps.longitude, key)
+                return False
+            return True
         if key in ("last_updated",):
             return self._resolve_value() is not None
         if key in _VEHICLE_INFO_KEYS:
