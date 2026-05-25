@@ -209,10 +209,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         gps_coordinators[vin] = gps_coordinator
 
     try:
-        _LOGGER.warning("BYD first refresh: %d telemetry coordinator(s)", len(coordinators))
+        _LOGGER.debug("BYD first refresh: %d telemetry coordinator(s)", len(coordinators))
         for coordinator in coordinators.values():
             await coordinator.async_config_entry_first_refresh()
-        _LOGGER.warning("BYD first refresh: %d GPS coordinator(s)", len(gps_coordinators))
+        _LOGGER.debug("BYD first refresh: %d GPS coordinator(s)", len(gps_coordinators))
         for gps_coordinator in gps_coordinators.values():
             await gps_coordinator.async_config_entry_first_refresh()
     except Exception as exc:  # noqa: BLE001

@@ -502,15 +502,7 @@ class BydSensor(BydVehicleEntity, SensorEntity):
         key = self.entity_description.key
         if key in ("gps_latitude", "gps_longitude", "gps_last_updated"):
             gps = self._get_gps_direct()
-            if gps is None:
-                _LOGGER.warning("GPS sensor unavailable: _get_gps_direct() returned None for key=%s", key)
-                return False
-            lat_ok = gps.latitude is not None
-            lon_ok = gps.longitude is not None
-            if not lat_ok or not lon_ok:
-                _LOGGER.warning("GPS sensor unavailable: lat=%s lon=%s key=%s", gps.latitude, gps.longitude, key)
-                return False
-            return True
+            return gps is not None and gps.latitude is not None and gps.longitude is not None
         if key in ("last_updated",):
             return self._resolve_value() is not None
         if key in _VEHICLE_INFO_KEYS:
