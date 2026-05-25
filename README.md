@@ -42,6 +42,12 @@ Home Assistant 自定义集成，用于接入比亚迪（BYD）中国区车辆�
 
 > **注意**：需要使用**车主主账号**登录。授权账户（非车主）无法获取遥测和 GPS 数据（服务端返回 `code=240`）。
 
+## 实体
+
+- **sensor（~52 个）**：车辆信息、系统状态、车门/窗/锁、胎压、电池/燃油、里程、能耗、GPS 经纬度、时间戳
+- **device_tracker**：车辆位置（GCJ-02 → WGS-84 转换后显示在地图上）
+- **number（2 个）**：遥测轮询间隔、GPS 轮询间隔（30–900 秒可调）
+
 ## 服务
 
 | 服务 | 说明 |
@@ -50,6 +56,12 @@ Home Assistant 自定义集成，用于接入比亚迪（BYD）中国区车辆�
 | `byd_china.fetch_gps` | 强制刷新 GPS 定位数据 |
 
 两个服务均接受 `device_id` 参数，可选择刷新特定车辆。
+
+## 车辆位置与轨迹
+
+集成创建 `device_tracker` 实体（名称：**位置**），自动在地图上显示车辆图标。启用 HA 的 [`recorder`](https://www.home-assistant.io/integrations/recorder/) 记录历史后即可在地图卡片上查看行驶轨迹。
+
+> 如需更完整的轨迹记录功能，可配合 [Traccar](https://www.traccar.org/) 等专业 GPS 追踪平台使用。
 
 ## 致谢
 
