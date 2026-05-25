@@ -97,6 +97,7 @@ class BydRealtimePollIntervalNumber(BydVehicleEntity, NumberEntity):
         entry_data = self.hass.data[DOMAIN][self._entry.entry_id]
         for coordinator in entry_data["coordinators"].values():
             coordinator.set_poll_interval(interval)
+            await coordinator.async_request_refresh()
 
         options = {**self._entry.options, CONF_POLL_INTERVAL: interval}
         if options != self._entry.options:
@@ -145,6 +146,7 @@ class BydGpsPollIntervalNumber(BydVehicleEntity, NumberEntity):
         entry_data = self.hass.data[DOMAIN][self._entry.entry_id]
         for gps_coordinator in entry_data["gps_coordinators"].values():
             gps_coordinator.set_poll_interval(interval)
+            await gps_coordinator.async_request_refresh()
 
         options = {**self._entry.options, CONF_GPS_POLL_INTERVAL: interval}
         if options != self._entry.options:
