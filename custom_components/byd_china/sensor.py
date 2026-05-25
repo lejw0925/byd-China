@@ -268,7 +268,7 @@ class BydGpsSensor(CoordinatorEntity[BydGpsUpdateCoordinator], SensorEntity):
         self.entity_description = description
         self._vin = vin
         self._vehicle = vehicle
-        self._attr_unique_id = f"{vin}_gps2_{description.key}"
+        self._attr_unique_id = f"{vin}_{description.source}_{description.key}"
 
     @property
     def device_info(self) -> DeviceInfo:
