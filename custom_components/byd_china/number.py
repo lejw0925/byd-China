@@ -62,7 +62,7 @@ class BydRealtimePollIntervalNumber(BydVehicleEntity, NumberEntity):
     """Runtime-configurable realtime polling interval."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "realtime_poll_interval"
+    _attr_name = "遥测轮询间隔"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_min_value = float(MIN_POLL_INTERVAL)
     _attr_native_max_value = float(MAX_POLL_INTERVAL)
@@ -108,7 +108,7 @@ class BydGpsPollIntervalNumber(BydVehicleEntity, NumberEntity):
     """Runtime-configurable GPS polling interval."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "gps_poll_interval"
+    _attr_name = "GPS轮询间隔"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_min_value = float(MIN_GPS_POLL_INTERVAL)
     _attr_native_max_value = float(MAX_GPS_POLL_INTERVAL)
