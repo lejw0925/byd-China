@@ -446,7 +446,7 @@ class BydSensor(BydVehicleEntity, SensorEntity):
         if key == "channel":
             # channel from vehicle_info raw dict, translate to brand name
             _CHANNEL_MAP = {1: "王朝", 2: "海洋", 3: "腾势", 4: "方程豹", 5: "仰望"}
-            ch = self._vehicle.channel
+            ch = getattr(self._vehicle, "channel", None)
             if ch is not None:
                 return _CHANNEL_MAP.get(ch, str(ch))
             # Fallback: try raw dict
