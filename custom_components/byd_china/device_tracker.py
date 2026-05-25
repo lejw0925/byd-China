@@ -76,9 +76,8 @@ def gcj02_to_wgs84(gcj_lat: float, gcj_lon: float) -> tuple[float, float]:
 class BydDeviceTracker(CoordinatorEntity, TrackerEntity):
     """BYD Vehicle Device Tracker with GCJ-02 → WGS-84 conversion."""
 
-    _attr_has_entity_name = True
     _attr_icon = "mdi:car"
-    _attr_translation_key = "location"
+    _attr_name = "位置"
 
     def __init__(
         self,
@@ -89,13 +88,13 @@ class BydDeviceTracker(CoordinatorEntity, TrackerEntity):
         super().__init__(coordinator)
         self._vin = vin
         self._vehicle = vehicle
-        self._attr_unique_id = f"{vin}_device_tracker"
+        self._attr_unique_id = f"{vin}_dt_location"
 
     def _get_gps_info(self) -> GpsInfo | None:
         data = self.coordinator.data
         if data is None:
             return None
-        if isinstance(data, GpsInfo):
+        if hasattr(data, "latitude") and hasattr(data, "longitude"):
             return data
         return None
 
@@ -121,10 +120,10 @@ class BydDeviceTracker(CoordinatorEntity, TrackerEntity):
 
     @property
     def available(self) -> bool:
-        if not super().available:
+        if not self.coordinator.last_update_success:
             return False
         gps = self._get_gps_info()
-        return gps is not None and gps.latitude is not None and gps.longitude is not None
+        return gps is not None and getattr(gps, "latitude", None) is not None and getattr(gps, "longitude", None) is not None
 
 
 # ---------------------------------------------------------------------------
