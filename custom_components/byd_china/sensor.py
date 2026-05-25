@@ -284,30 +284,26 @@ class BydGpsSensor(CoordinatorEntity[BydGpsUpdateCoordinator], SensorEntity):
     @property
     def available(self) -> bool:
         if not self.coordinator.last_update_success:
-            _LOGGER.warning("GPS available=False: last_update_success=False")
             return False
         data = self.coordinator.data
-        if not isinstance(data, GpsInfo):
-            _LOGGER.warning("GPS available=False: data not GpsInfo type=%s", type(data).__name__)
+        if data is None:
             return False
-        if data.latitude is None or data.longitude is None:
-            _LOGGER.warning("GPS available=False: lat=%s lon=%s", data.latitude, data.longitude)
-            return False
-        _LOGGER.warning("GPS available=True: lat=%s lon=%s", data.latitude, data.longitude)
-        return True
+        lat = getattr(data, "latitude", None)
+        lon = getattr(data, "longitude", None)
+        return lat is not None and lon is not None
 
     @property
     def native_value(self) -> Any:
         data = self.coordinator.data
-        if not isinstance(data, GpsInfo):
+        if data is None:
             return None
         key = self.entity_description.key
         if key == "gps_latitude":
-            return data.latitude
+            return getattr(data, "latitude", None)
         if key == "gps_longitude":
-            return data.longitude
+            return getattr(data, "longitude", None)
         if key == "gps_last_updated":
-            val = data.gps_timestamp
+            val = getattr(data, "gps_timestamp", None)
             if isinstance(val, datetime):
                 return val.replace(tzinfo=UTC) if val.tzinfo is None else val
             return val
@@ -379,7 +375,7 @@ class BydSensor(BydVehicleEntity, SensorEntity):
         data = self.coordinator.data
         if data is None:
             return None
-        if isinstance(data, GpsInfo):
+        if hasattr(data, "latitude") and hasattr(data, "longitude"):
             return data
         return getattr(data, "gps", None)
 
