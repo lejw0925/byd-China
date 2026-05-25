@@ -65,6 +65,7 @@ async def _validate_input(hass: HomeAssistant, data: dict[str, Any]) -> None:
         language=language,
         time_zone=time_zone,
         target_brand=target_brand,
+        mqtt_enabled=False,
         device=device_profile,
     )
     async with BydClient(config, session=session) as client:

@@ -87,6 +87,7 @@ class BydApi:
             time_zone=time_zone,
             control_pin=None,
             target_brand=entry.data.get(CONF_TARGET_BRAND, DEFAULT_TARGET_BRAND),
+            mqtt_enabled=False,
             device=device,
         )
         self._client: BydClient | None = None
