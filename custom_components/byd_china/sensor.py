@@ -268,7 +268,7 @@ class BydGpsSensor(CoordinatorEntity[BydGpsUpdateCoordinator], SensorEntity):
         self.entity_description = description
         self._vin = vin
         self._vehicle = vehicle
-        self._attr_unique_id = f"{vin}_{description.source}_{description.key}"
+        self._attr_unique_id = f"{vin}_gps2_{description.key}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -284,9 +284,17 @@ class BydGpsSensor(CoordinatorEntity[BydGpsUpdateCoordinator], SensorEntity):
     @property
     def available(self) -> bool:
         if not self.coordinator.last_update_success:
+            _LOGGER.warning("GPS available=False: last_update_success=False")
             return False
         data = self.coordinator.data
-        return isinstance(data, GpsInfo) and data.latitude is not None and data.longitude is not None
+        if not isinstance(data, GpsInfo):
+            _LOGGER.warning("GPS available=False: data not GpsInfo type=%s", type(data).__name__)
+            return False
+        if data.latitude is None or data.longitude is None:
+            _LOGGER.warning("GPS available=False: lat=%s lon=%s", data.latitude, data.longitude)
+            return False
+        _LOGGER.warning("GPS available=True: lat=%s lon=%s", data.latitude, data.longitude)
+        return True
 
     @property
     def native_value(self) -> Any:
