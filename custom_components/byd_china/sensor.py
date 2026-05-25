@@ -480,6 +480,18 @@ class BydSensor(BydVehicleEntity, SensorEntity):
 
         attr = self.entity_description.attr_key or key
         value = getattr(obj, attr, None)
+        # Fallback to raw dict for fields not on the pydantic model
+        # (e.g. hev_mileage is only in the API response, not on VehicleRealtimeData)
+        if value is None:
+            raw = getattr(obj, "raw", None)
+            if isinstance(raw, dict):
+                # Try snake_case key first, then common camelCase variants
+                value = raw.get(attr)
+                if value is None and "_" in attr:
+                    # Convert snake_case to camelCase: hev_mileage -> hevMileage
+                    parts = attr.split("_")
+                    camel = parts[0] + "".join(p.title() for p in parts[1:])
+                    value = raw.get(camel)
         # For enum values, return the raw int
         enum_value = getattr(value, "value", None)
         if isinstance(enum_value, int):
