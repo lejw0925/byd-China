@@ -1,0 +1,7 @@
+{
+  "name": "BYD China",
+  "content_in_root": false,
+  "domains": ["byd_china"],
+  "homeassistant": "2024.1.0",
+  "render_readme": true
+}
